@@ -1,0 +1,101 @@
+type AuthenticatedUserPayload = record { username : text; role : UserRole };
+type Delivery = record {
+  id : nat64;
+  status : text;
+  delivery_person_id : nat64;
+  created_at : nat64;
+  order_id : nat64;
+};
+type DeliveryPayload = record { delivery_person_id : nat64; order_id : nat64 };
+type MenuItem = record {
+  id : nat64;
+  restaurant_id : nat64;
+  quantity_kg : nat64;
+  name : text;
+  description : text;
+  created_at : nat64;
+  price : float64;
+};
+type MenuItemPayload = record {
+  restaurant_id : nat64;
+  quantity_kg : nat64;
+  name : text;
+  description : text;
+  price : float64;
+};
+type Message = variant {
+  Error : text;
+  InvalidPayload : text;
+  NotFound : text;
+  Success : text;
+  UnAuthorized : text;
+};
+type Order = record {
+  id : nat64;
+  status : text;
+  restaurant_id : nat64;
+  total_bill : float64;
+  created_at : nat64;
+  customer_id : nat64;
+  items : vec nat64;
+};
+type OrderPayload = record {
+  restaurant_id : nat64;
+  customer_id : nat64;
+  items : vec nat64;
+};
+type Restaurant = record {
+  id : nat64;
+  name : text;
+  description : text;
+  created_at : nat64;
+  owner_id : nat64;
+  address : text;
+};
+type RestaurantPayload = record {
+  name : text;
+  description : text;
+  owner_id : nat64;
+  address : text;
+};
+type Result = variant { Ok : Delivery; Err : Message };
+type Result_1 = variant { Ok : MenuItem; Err : Message };
+type Result_2 = variant { Ok : Order; Err : Message };
+type Result_3 = variant { Ok : Restaurant; Err : Message };
+type Result_4 = variant { Ok : User; Err : Message };
+type Result_5 = variant { Ok : vec Delivery; Err : Message };
+type Result_6 = variant { Ok : vec MenuItem; Err : Message };
+type Result_7 = variant { Ok : vec Order; Err : Message };
+type Result_8 = variant { Ok : vec Restaurant; Err : Message };
+type Result_9 = variant { Ok : vec User; Err : Message };
+type User = record {
+  id : nat64;
+  username : text;
+  role : UserRole;
+  created_at : nat64;
+  email : text;
+  phone_number : text;
+};
+type UserPayload = record {
+  username : text;
+  role : UserRole;
+  email : text;
+  phone_number : text;
+};
+type UserRole = variant { RestaurantOwner; Customer; DeliveryPerson };
+service : {
+  accept_delivery : (nat64, AuthenticatedUserPayload) -> (Result);
+  create_delivery : (DeliveryPayload) -> (Result);
+  create_menu_item : (MenuItemPayload, AuthenticatedUserPayload) -> (Result_1);
+  create_order : (OrderPayload) -> (Result_2);
+  create_restaurant : (RestaurantPayload, AuthenticatedUserPayload) -> (
+      Result_3,
+    );
+  create_user : (UserPayload) -> (Result_4);
+  get_deliveries : () -> (Result_5) query;
+  get_menu_items : () -> (Result_6) query;
+  get_orders : () -> (Result_7) query;
+  get_restaurants : () -> (Result_8) query;
+  get_users : () -> (Result_9) query;
+  mark_delivery_as_delivered : (nat64, AuthenticatedUserPayload) -> (Result);
+}

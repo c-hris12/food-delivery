@@ -737,6 +737,177 @@ fn mark_delivery_as_delivered(
     }
 }
 
+// Update Functions
+
+#[ic_cdk::update]
+fn update_user(id: u64, payload: UserPayload) -> Result<User, Message> {
+    USER_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        match storage.iter().find(|(_, user)| user.id == id).map(|(_, user)| user.clone()) {
+            Some(mut user) => {
+                user.username = payload.username;
+                user.email = payload.email;
+                user.phone_number = payload.phone_number;
+                user.role = payload.role;
+                storage.insert(id, user.clone());
+                Ok(user)
+            }
+            None => Err(Message::NotFound("User not found".to_string())),
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn update_restaurant(id: u64, payload: RestaurantPayload) -> Result<Restaurant, Message> {
+    RESTAURANT_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        match storage.iter().find(|(_, restaurant)| restaurant.id == id).map(|(_, restaurant)| restaurant.clone()) {
+            Some(mut restaurant) => {
+                restaurant.name = payload.name;
+                restaurant.description = payload.description;
+                restaurant.address = payload.address;
+                storage.insert(id, restaurant.clone());
+                Ok(restaurant)
+            }
+            None => Err(Message::NotFound("Restaurant not found".to_string())),
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn update_menu_item(id: u64, payload: MenuItemPayload) -> Result<MenuItem, Message> {
+    MENU_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        match storage.iter().find(|(_, item)| item.id == id).map(|(_, item)| item.clone()) {
+            Some(mut item) => {
+                item.name = payload.name;
+                item.description = payload.description;
+                item.price = payload.price;
+                item.quantity_kg = payload.quantity_kg;
+                storage.insert(id, item.clone());
+                Ok(item)
+            }
+            None => Err(Message::NotFound("Menu item not found".to_string())),
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn update_order(id: u64, payload: OrderPayload) -> Result<Order, Message> {
+    ORDER_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        match storage.iter().find(|(_, order)| order.id == id).map(|(_, order)| order.clone()) {
+            Some(mut order) => {
+                order.customer_id = payload.customer_id;
+                order.restaurant_id = payload.restaurant_id;
+                order.items = payload.items.clone(); // Clone the items here
+                order.status = "updated".to_string();
+                order.total_bill = 0.0; // Recalculate total
+                for item_id in &payload.items {
+                    let item = MENU_STORAGE.with(|storage| {
+                        storage
+                            .borrow()
+                            .iter()
+                            .find(|(_, item)| item.id == *item_id)
+                            .map(|(_, item)| item.clone())
+                    });
+                    if let Some(item) = item {
+                        order.total_bill += item.price;
+                    } else {
+                        return Err(Message::NotFound(format!(
+                            "Menu item with ID {} not found",
+                            item_id
+                        )));
+                    }
+                }
+                storage.insert(id, order.clone());
+                Ok(order)
+            }
+            None => Err(Message::NotFound("Order not found".to_string())),
+        }
+    })
+}
+
+
+#[ic_cdk::update]
+fn update_delivery(id: u64, payload: DeliveryPayload) -> Result<Delivery, Message> {
+    DELIVERY_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        match storage.iter().find(|(_, delivery)| delivery.id == id).map(|(_, delivery)| delivery.clone()) {
+            Some(mut delivery) => {
+                delivery.order_id = payload.order_id;
+                delivery.delivery_person_id = payload.delivery_person_id;
+                delivery.status = "updated".to_string();
+                storage.insert(id, delivery.clone());
+                Ok(delivery)
+            }
+            None => Err(Message::NotFound("Delivery not found".to_string())),
+        }
+    })
+}
+
+// Delete Functions
+
+#[ic_cdk::update]
+fn delete_user(id: u64) -> Result<Message, Message> {
+    USER_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        if storage.remove(&id).is_some() {
+            Ok(Message::Success("User deleted successfully".to_string()))
+        } else {
+            Err(Message::NotFound("User not found".to_string()))
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn delete_restaurant(id: u64) -> Result<Message, Message> {
+    RESTAURANT_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        if storage.remove(&id).is_some() {
+            Ok(Message::Success("Restaurant deleted successfully".to_string()))
+        } else {
+            Err(Message::NotFound("Restaurant not found".to_string()))
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn delete_menu_item(id: u64) -> Result<Message, Message> {
+    MENU_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        if storage.remove(&id).is_some() {
+            Ok(Message::Success("Menu item deleted successfully".to_string()))
+        } else {
+            Err(Message::NotFound("Menu item not found".to_string()))
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn delete_order(id: u64) -> Result<Message, Message> {
+    ORDER_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        if storage.remove(&id).is_some() {
+            Ok(Message::Success("Order deleted successfully".to_string()))
+        } else {
+            Err(Message::NotFound("Order not found".to_string()))
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn delete_delivery(id: u64) -> Result<Message, Message> {
+    DELIVERY_STORAGE.with(|storage| {
+        let mut storage = storage.borrow_mut();
+        if storage.remove(&id).is_some() {
+            Ok(Message::Success("Delivery deleted successfully".to_string()))
+        } else {
+            Err(Message::NotFound("Delivery not found".to_string()))
+        }
+    })
+}
+
 fn current_time() -> u64 {
     time()
 }

@@ -60,14 +60,15 @@ type RestaurantPayload = record {
 };
 type Result = variant { Ok : Delivery; Err : Message };
 type Result_1 = variant { Ok : MenuItem; Err : Message };
+type Result_10 = variant { Ok : vec User; Err : Message };
 type Result_2 = variant { Ok : Order; Err : Message };
 type Result_3 = variant { Ok : Restaurant; Err : Message };
 type Result_4 = variant { Ok : User; Err : Message };
-type Result_5 = variant { Ok : vec Delivery; Err : Message };
-type Result_6 = variant { Ok : vec MenuItem; Err : Message };
-type Result_7 = variant { Ok : vec Order; Err : Message };
-type Result_8 = variant { Ok : vec Restaurant; Err : Message };
-type Result_9 = variant { Ok : vec User; Err : Message };
+type Result_5 = variant { Ok : Message; Err : Message };
+type Result_6 = variant { Ok : vec Delivery; Err : Message };
+type Result_7 = variant { Ok : vec MenuItem; Err : Message };
+type Result_8 = variant { Ok : vec Order; Err : Message };
+type Result_9 = variant { Ok : vec Restaurant; Err : Message };
 type User = record {
   id : nat64;
   username : text;
@@ -92,10 +93,20 @@ service : {
       Result_3,
     );
   create_user : (UserPayload) -> (Result_4);
-  get_deliveries : () -> (Result_5) query;
-  get_menu_items : () -> (Result_6) query;
-  get_orders : () -> (Result_7) query;
-  get_restaurants : () -> (Result_8) query;
-  get_users : () -> (Result_9) query;
+  delete_delivery : (nat64) -> (Result_5);
+  delete_menu_item : (nat64) -> (Result_5);
+  delete_order : (nat64) -> (Result_5);
+  delete_restaurant : (nat64) -> (Result_5);
+  delete_user : (nat64) -> (Result_5);
+  get_deliveries : () -> (Result_6) query;
+  get_menu_items : () -> (Result_7) query;
+  get_orders : () -> (Result_8) query;
+  get_restaurants : () -> (Result_9) query;
+  get_users : () -> (Result_10) query;
   mark_delivery_as_delivered : (nat64, AuthenticatedUserPayload) -> (Result);
+  update_delivery : (nat64, DeliveryPayload) -> (Result);
+  update_menu_item : (nat64, MenuItemPayload) -> (Result_1);
+  update_order : (nat64, OrderPayload) -> (Result_2);
+  update_restaurant : (nat64, RestaurantPayload) -> (Result_3);
+  update_user : (nat64, UserPayload) -> (Result_4);
 }
